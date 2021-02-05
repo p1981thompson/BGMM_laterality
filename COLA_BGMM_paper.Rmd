@@ -1,0 +1,206 @@
+---
+title             : "Bayesian Gaussian Mixture modelling of Hemispheric Lateralization for Language and Facial Emotion in an Online Behavioural Battery"
+shorttitle        : "Bayesian Mixture model for online Battery"
+
+author: 
+  - name          : "Paul A. Thompson"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "Postal address"
+    email         : "paul.thompson@psy.ox.ac.uk"
+    role:         # Contributorship roles
+      - Conceptualization
+      - Writing - Original Draft Preparation
+      - Writing - Review & Editing
+  - name          : "Adam Parker"
+    affiliation   : "1"
+    role:
+      - Writing - Original Draft Preparation
+      - Writing - Review & Editing
+  - name          : "Zoe Woodhead"
+    affiliation   : "1"
+    role:
+      - Writing - Original Draft Preparation
+      - Writing - Review & Editing
+  - name          : "Dorothy Bishop"
+    affiliation   : "1"
+    role:
+      - Writing - Original Draft Preparation
+      - Writing - Review & Editing
+      - Funding - Securing funding for project
+
+affiliation:
+  - id            : "1"
+    institution   : "Department of Experimental Psychology, University of Oxford"
+
+
+abstract: |
+  One or two sentences providing a **basic introduction** to the field,  comprehensible to a scientist in any discipline.
+  
+  Two to three sentences of **more detailed background**, comprehensible  to scientists in related disciplines.
+  
+  One sentence clearly stating the **general problem** being addressed by  this particular study.
+  
+  One sentence summarizing the main result (with the words "**here we show**" or their equivalent).
+  
+  Two or three sentences explaining what the **main result** reveals in direct comparison to what was thought to be the case previously, or how the  main result adds to previous knowledge.
+  
+  One or two sentences to put the results into a more **general context**.
+  
+  Two or three sentences to provide a **broader perspective**, readily comprehensible to a scientist in any discipline.
+  
+  <!-- https://tinyurl.com/ybremelq -->
+  
+  
+keywords          : "Bayesian, Gaussian Mixture Model, Language, Hemispheric lateralisation, Online testing"
+wordcount         : "X"
+
+bibliography      : ["BGMMreferences.bib"]
+
+floatsintext      : no
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+linenumbers       : yes
+mask              : no
+draft             : no
+
+documentclass     : "apa6"
+classoption       : "man"
+output            : papaja::apa6_word
+---
+
+```{r setup, include = FALSE}
+library("papaja")
+
+```
+
+```{r analysis-preferences}
+# Seed for random number generation
+set.seed(1981)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+# Research Question(s)
+
+To investigate the distribution of language lateralization in a large sample of individuals from an online behavioural battery. 
+
+  1. Investigate whether mthe distribution of laterality indices for an online language task (Dichotic Listening) shows the same groupings of left lateralised, bilateral and right lateralised individuals as Mazoyer’s fMRI study. I.e., is this distribution of language laterality indices replicable across tasks and modalities?,
+  2. Establish whether there are distributional differences between left and right handers, 
+  3. Extend Mazoyer’s findings by investigating whether the distribution of laterality indices for a right lateralised task (Chimeric Faces) shows a mirrored pattern of laterality groupings.
+  4. Investigate whether there is a relationship between individual’s groupings for the language and non-language tasks.
+
+# Hypotheses
+
+Our hypotheses are examined using data reported by [@Parker_2020]. Here, the authors had a relatively large number of participants complete behavioural laterality tasks twice to establish test-retest reliability. Data are available on the Open Science Framework (https://osf.io/qsxcv/) and working versions of the dichotic listening and chimeric faces tasks are available via Gorilla Open Materials: https://gorilla.sc/openmaterials/104636. 
+
+# Methods
+
+## Participants
+
+@Parker_2020 recruited 441 native English speakers via the Prolific participant pool (www.prolific.co). Participants were 18- to 50-years-old, had normal or corrected-to-normal vision and reported no history of neurological disease (e.g., head injury, brain tumour, stroke) or significant hearing loss or impairment. Of the 441 participants, 411 completed both testing sessions. A number of participants were then excluded based on a number of pre-registered criteria: (1) advanced proficiency according to the LexTale [@Lemhofer_2012] leaving a sample of 392 participants (133 left-handers); (2) for the dichotic listening, participants were removed if they scored less than 75% correct on trials where the same sound was played to each ear; (3) for the chimeric faces, participants were removed if they scored less than 75% correct on trials where the emotion was shown in each hemiface. In total, there were usable data for 304 participants on the dichotic listening and 305 on the chimeric faces.
+
+
+## Material
+
+## Behavioural Measures
+
+### Dichotic listening
+
+The consonant-vowel dichotic stimuli were taken from @Bless_2013 and @Hugdahl_1986. The task consisted of six consonant-vowel stimuli (/ba/, /da/, /ga/, /pa/, /ta/, /ka/) which were paired and played in each sound channel (36 unique pairings). At the start of a trail, a fixation point was displayed for 250 ms, after which a stimulus was played. Participants were instructed to to report the syllable they heard or if it seemed like they heard two different sounds, the one they heard most clearly by clicking a button corresponding to one of the six syllables. The response triggered the start of the next trial; trials did not time-out after a predetermined duration. Participants completed four repetitions of each stimuli resulting in 144 trials. Prior to participating, participants had to pass two screening techniques which required participants to distinguish pitch [@Woods_2017] and checked for stereo sound. The test-retest reliability for this task was $r= 0.78, 95\%~CIs= [0.71 - 0.84]$.
+
+
+### Chimeric faces
+
+The chimeric faces stimuli were taken from @Burt_1997 and @Innes_2016. The task consisted of symmetrical averaged images created from four male and females faces. Faces were split vertically down the middle and could show one of four emotions in each hemiface (happiness, anger, disgust, and sadness (16 unique pairings). At the start of each trial, a fixation point was displayed for 100 ms, after which a stimulus was displayed. Participants were instructed to report the emotion seen in the face by clicking a button corresponding to the emotion. The response triggered the start of the next trial; trials did not time-out after a predetermined duration. Participants completed eight repetitions of each stimuli resulting in 128 trials. The test-retest reliability for this task was $r= 0.88$, $95\%~CIs= [0.84 - 0.90]$.
+
+## Statistical analysis
+
+### Laterality indices
+
+Laterality indices were calculated in two ways: (1) traditionally $(100.(Right—Left)/(Right + Left))$; (2) as a z-statistic for each participant, using $z = (pR-.5)/\sqrt(pR x pL/n)$, where $pR$ is the proportion of correct responses in the RVF, $pL$ is the proportion of L responses in the LVF, and $n$ is total LVF and RVF responses. In Table 1, we summarise both LIs across the two testing sessions for the dichotic listening and chimeric faces. 
+
+```{r}
+library(flextable)
+library(officer)
+mytab<-data.frame(Task=c("DL 1", "DL 2","CF 1", "CF 2"), N1=c(305,287,342,322), Mean1=c(15.96,19.53,-17.97,-19.08), SD1=c(32.14,32.04,26.76,30.78), N2=c(304,287,305,287), Mean2=c(1.64,2.23,-1.91,-2.42), SD2=c(6.12,6.29,3.45,4.80))
+
+
+myft <- flextable(mytab)
+myft<-set_header_labels(myft, Task = "Task", N1 = "N", Mean1 = "Mean", SD1 = "SD",N2 = "N", Mean2 = "Mean", SD2 ="SD")
+myft <- add_header_row(myft, values = c(" ","Traditional LI", "LIz"), colwidths = c(1,3,3),top=TRUE)
+myft <- align(myft, align = "center", part = "all")
+myft <- merge_v(myft,part = "header", j = 1)
+myft <-  bg(myft, j = 2:4, bg = "lightgray", part = "body")
+myft <-  bg(myft, j = 2:4, bg = "lightgray", part = "header")
+myft
+```
+
+### Finite Gaussian mixture model
+
+The Gaussian mixture model with $m$ components for the response variable $Y_{i}$ given the covariates $\boldsymbol{x}_{i}, i=1,2,\ldots,n.$, has the conditional distribution as follows:
+
+$$
+y_{i} \sim \sum_{k=1}^{m}\phi_{k}\mathcal{N}_{k}(\mu_{k},\sigma_{k})
+$$
+
+
+where $\phi_{k}$ is a vector of mixing proportions provided $\sum_{k=1}^{m}\phi_{k}=1$, $\phi_{k}>0$, $k=1,2,\ldots,m$, $\beta_{k}$ are $k$ vectors of model parameters, and $\sigma_{k}$  are the $k$ variance parameters. We also define $y$ as observations from our response variable and $x$ as a set of covariates. This model requires that the error terms are independent and identically distributed, and follow a normal distribution with mean zero and constant variance. 
+
+Following @Richardson_1997 and @Gelman_2004, we ensure identifiability by introducing a latent allocation variable $z_{i}, i=1,2,\ldots,n.$ that indicates the group membership for each $i^{th}$ observation as this is initially unknown. 
+
+$$
+    z_{i} = \begin{cases}
+        1 & \text{if the ith unit is drawn from the mth mixture component} \\
+        0 & \text{Otherwise.}    
+        \end{cases}
+$$
+
+The $z_{i} = (z_{i,1},\ldots,z_{i,m})$ are independently drawn from the distributions
+
+$p(z_{i}=k)=\phi_{k}$, for $k=1,2,\ldots, m.$
+
+
+then, the observations are drawn from their corresponding subpopulations, given the values of $z_{i}$,
+
+$y_{i}|z\sim f(\cdot|\theta_{z_{k}})$, for $i=1,2,\ldots, n.$
+
+
+ where $\theta = (\mu,\sigma,\phi)$ are the model parameters.
+
+We fit the model within a Bayesian framework, so we specify the following priors:
+
+$$
+\mu_{k} \sim \mathcal{N}(\mu_{0},1/B0inv);
+\sigma_{K} \sim Lognormal(\mu_{0},\tau_{0})
+\phi_{k} \sim Uniform(0,1);
+$$
+
+### Label switching problem solution
+
+When using a Bayesian framework for the analysis of mixture models, label switching is a familiar problem. The 
+
+# Results
+
+# Discussion
+
+
+\newpage
+
+# References
+
+# Acknowledgements
+This study is supported by an Advanced Grant from the European Research Council [694189].
+
+# Declaration of interest
+The authors declare no competing interests.
+
+# Author contributions
+
+
+\begingroup
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
+
+<div id="refs" custom-style="Bibliography"></div>
+\endgroup
