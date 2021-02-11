@@ -4,6 +4,10 @@ library(bayesplot)
 library(tidyverse)
 library(rstan)
 
+
+options(mc.cores = parallel::detectCores())
+rstan_options(auto_write = TRUE)
+
 #https://cran.r-project.org/web/packages/pivmet/vignettes/Relabelling_in_Bayesian_mixtures_by_pivotal_units.html
 
 ## Laterlity data: Parker et al. (2020)
@@ -41,19 +45,8 @@ w<-which(LIs$index_EHI<(-89))
 LIs$handed3[w]<-'Extreme.left'
 
 myLI<-LIs$Day1_DL_acc_LI[complete.cases(LIs$Day1_DL_acc_LI)]
-my
+myLI2<-LIs$Day1_CF_acc_LI[complete.cases(LIs$Day1_CF_acc_LI)]
 #==================================================================##
-# k <- 3
-# nMC <- 15000
-# 
-# res2 <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
-#                  software = "rstan")
-# rel2 <- piv_rel(res2)
-# piv_plot(y=y, res2, rel2, par = c("mean"), type="chains")
-# 
-# posterior <- as.array(res2$stanfit)
-# mcmc_intervals(posterior, regex_pars = c("mu"))
-
 #==================================================================##
 # Stan model
 #==================================================================##
@@ -113,6 +106,8 @@ mix_univ <-"
       }
       "
 #==================================================================##
+# Dichotic listening
+#==================================================================##
 # 2 component Gaussian mixture model via Stan
 #==================================================================##
 
@@ -122,38 +117,38 @@ data = list(N=length(myLI), y=myLI, k=2,
 
 #==================================================================##
 
-fit_univ2 <-  stan(model_code = mix_univ,
+fit_univ2_DL <-  stan(model_code = mix_univ,
                   data=data,
                   chains = 4,
                   iter = 50000)
 
 #==================================================================##
 
-printed <- cat(print(fit_univ2, pars =c("mu", "eta", "sigma")))
-Parker_univ2 <- rstan::extract(fit_univ2)
+printed <- cat(print(fit_univ2_DL, pars =c("mu", "eta", "sigma")))
+Parker_univ2_DL <- rstan::extract(fit_univ2_DL)
 
-traceplot(fit_univ2)
+traceplot(fit_univ2_DL)
 #==================================================================##
 
 library(loo)
-log_lik1<-extract_log_lik(fit_univ2, merge_chains=FALSE)
+log_lik1_DL<-extract_log_lik(fit_univ2_DL, merge_chains=FALSE)
 
-waic1<-waic(log_lik1)
-r_eff <- relative_eff(exp(log_lik1), cores = 2)
-loo_1 <- loo(log_lik1, r_eff = r_eff, cores = 2)
-print(loo_1)
+waic1<-waic(log_lik1_DL)
+r_eff_DL <- relative_eff(exp(log_lik1_DL), cores = 2)
+loo_1_DL <- loo(log_lik1_DL, r_eff = r_eff_DL, cores = 2)
+print(loo_1_DL)
 
 #==================================================================##
  k <- 2
  nMC <- 50000
  
- res2 <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
+ res2_DL <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
                   software = "rstan")
- rel2 <- piv_rel(res2)
- piv_plot(y=myLI, res2, rel2, par = c("mean"), type="chains")
+ rel2_DL <- piv_rel(res2_DL)
+ piv_plot(y=myLI, res2_DL, rel2_DL, par = c("mean"), type="chains")
  
- posterior2 <- as.array(res2$stanfit)
- mcmc_intervals(posterior2, regex_pars = c("mu","sigma"))
+ posterior2_DL <- as.array(res2_DL$stanfit)
+ mcmc_intervals(posterior2_DL, regex_pars = c("mu","sigma"))
 
 #==================================================================##
 # 3 component Gaussian mixture model via Stan
@@ -165,43 +160,43 @@ dataB = list(N=length(myLI), y=myLI, k=3,
 
 #==================================================================##
 
-fit_univ3 <-  stan(model_code = mix_univ,
+fit_univ3_DL <-  stan(model_code = mix_univ,
                    data=dataB,
                    chains = 4,
                    iter = 50000)
 
 #==================================================================##
 
-printed <- cat(print(fit_univ3, pars =c("mu", "eta", "sigma")))
-Parker_univ3 <- rstan::extract(fit_univ3)
+printed <- cat(print(fit_univ3_DL, pars =c("mu", "eta", "sigma")))
+Parker_univ3_DL <- rstan::extract(fit_univ3_DL)
 
-traceplot(fit_univ3)
+traceplot(fit_univ3_DL)
 
 #==================================================================##
 
-library(loo)
-log_lik2<-extract_log_lik(fit_univ3, merge_chains=FALSE)
 
-waic2<-waic(log_lik2)
-r_eff2 <- relative_eff(exp(log_lik2), cores = 2)
-loo_2 <- loo(log_lik2, r_eff = r_eff2, cores = 2)
-print(loo_2)
+log_lik2_DL<-extract_log_lik(fit_univ3_DL, merge_chains=FALSE)
+
+waic2<-waic(log_lik2_DL)
+r_eff2 <- relative_eff(exp(log_lik2_DL), cores = 2)
+loo_2 <- loo(log_lik2_DL, r_eff = r_eff2_DL, cores = 2)
+print(loo_2_DL)
 
 # Compare
-comp <- loo_compare(loo_1, loo_2)
-print(comp)
+comp1 <- loo_compare(loo_1_DL, loo_2_DL)
+print(comp1)
 
 #==================================================================##
 k <- 3
 nMC <- 50000
 
-res3 <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
+res3_DL <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
                  software = "rstan")
-rel3 <- piv_rel(res3)
-piv_plot(y=y, res3, rel3, par = c("mean"), type="chains")
+rel3_DL <- piv_rel(res3_DL)
+piv_plot(y=y, res3_DL, rel3_DL, par = c("mean"), type="chains")
 
-posterior3 <- as.array(res3$stanfit)
-mcmc_intervals(posterior3, regex_pars = c("mu","sigma"))
+posterior3_DL <- as.array(res3_DL$stanfit)
+mcmc_intervals(posterior3_DL, regex_pars = c("mu","sigma"))
 #==================================================================##
 # 4 component Gaussian mixture model via Stan
 #==================================================================##
@@ -212,40 +207,181 @@ dataC = list(N=length(myLI), y=myLI, k=4,
 
 #==================================================================##
 
-fit_univ4 <-  stan(model_code = mix_univ,
+fit_univ4_DL <-  stan(model_code = mix_univ,
                    data=dataC,
                    chains = 4,
                    iter = 50000)
 
 #==================================================================##
 
-printed <- cat(print(fit_univ4, pars =c("mu", "eta", "sigma")))
-Parker_univ4 <- rstan::extract(fit_univ4)
+printed <- cat(print(fit_univ4_DL, pars =c("mu", "eta", "sigma")))
+Parker_univ4_DL <- rstan::extract(fit_univ4_DL)
 
-traceplot(fit_univ4)
+traceplot(fit_univ4_DL)
 
 #==================================================================##
 
 library(loo)
-log_lik3<-extract_log_lik(fit_univ4, merge_chains=FALSE)
+log_lik3_DL<-extract_log_lik(fit_univ4_DL, merge_chains=FALSE)
 
-waic3<-waic(log_lik3)
-r_eff3 <- relative_eff(exp(log_lik3), cores = 2)
-loo_3 <- loo(log_lik3, r_eff = r_eff3, cores = 2)
-print(loo_3)
+waic3<-waic(log_lik3_DL)
+r_eff3_DL <- relative_eff(exp(log_lik3_DL), cores = 2)
+loo_3_DL <- loo(log_lik3_DL, r_eff = r_eff3_DL, cores = 2)
+print(loo_3_DL)
 
 # Compare
-comp <- loo_compare(loo_1, loo_2, loo_3)
-print(comp)
+comp2 <- loo_compare(loo_1_DL, loo_2_DL, loo_3_DL)
+print(comp2)
 
 #==================================================================##
 k <- 4
 nMC <- 50000
 
-res4 <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
+res4_DL <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
                  software = "rstan")
-rel4 <- piv_rel(res4)
-piv_plot(y=y, res4, rel4, par = c("mean"), type="chains")
+rel4_DL <- piv_rel(res4_DL)
+piv_plot(y=y, res4_DL, rel4_DL, par = c("mean"), type="chains")
 
-posterior4 <- as.array(res4$stanfit)
-mcmc_intervals(posterior4, regex_pars = c("mu","sigma"))
+posterior4_DL <- as.array(res4_DL$stanfit)
+mcmc_intervals(posterior4_DL, regex_pars = c("mu","sigma"))
+
+#==================================================================##
+#==================================================================##
+# Chimeric faces
+#==================================================================##
+# 2 component Gaussian mixture model via Stan
+#==================================================================##
+
+data = list(N=length(myLI2), y=myLI2, k=2,
+            mu_0=0, B0inv=0.1,
+            mu_sigma=0, tau_sigma=2)
+
+#==================================================================##
+
+fit_univ2_CF <-  stan(model_code = mix_univ,
+                      data=data,
+                      chains = 4,
+                      iter = 50000)
+
+#==================================================================##
+
+printed <- cat(print(fit_univ2_CF, pars =c("mu", "eta", "sigma")))
+Parker_univ2_CF <- rstan::extract(fit_univ2_CF)
+
+traceplot(fit_univ2_CF)
+#==================================================================##
+
+library(loo)
+log_lik1_CF<-extract_log_lik(fit_univ2_CF, merge_chains=FALSE)
+
+waic1<-waic(log_lik1_CF)
+r_eff_CF <- relative_eff(exp(log_lik1_CF), cores = 2)
+loo_1_CF <- loo(log_lik1_CF, r_eff = r_eff_CF, cores = 2)
+print(loo_1_CF)
+
+#==================================================================##
+k <- 2
+nMC <- 50000
+
+res2_CF <- piv_MCMC(y = myLI2, k = k, nMC = 10000, 
+                    software = "rstan")
+rel2_CF <- piv_rel(res2_CF)
+piv_plot(y=myLI, res2_CF, rel2_CF, par = c("mean"), type="chains")
+
+posterior2_CF <- as.array(res2_CF$stanfit)
+mcmc_intervals(posterior2_CF, regex_pars = c("mu","sigma"))
+
+#==================================================================##
+# 3 component Gaussian mixture model via Stan
+#==================================================================##
+
+dataB = list(N=length(myLI2), y=myLI2, k=3,
+             mu_0=0, B0inv=0.1,
+             mu_sigma=0, tau_sigma=2)
+
+#==================================================================##
+
+fit_univ3_CF <-  stan(model_code = mix_univ,
+                      data=dataB,
+                      chains = 4,
+                      iter = 50000)
+
+#==================================================================##
+
+printed <- cat(print(fit_univ3_CF, pars =c("mu", "eta", "sigma")))
+Parker_univ3_CF <- rstan::extract(fit_univ3_CF)
+
+traceplot(fit_univ3_CF)
+
+#==================================================================##
+
+
+log_lik2_CF<-extract_log_lik(fit_univ3_CF, merge_chains=FALSE)
+
+waic2<-waic(log_lik2_CF)
+r_eff2 <- relative_eff(exp(log_lik2_CF), cores = 2)
+loo_2 <- loo(log_lik2_CF, r_eff = r_eff2_CF, cores = 2)
+print(loo_2_CF)
+
+# Compare
+comp1 <- loo_compare(loo_1_CF, loo_2_CF)
+print(comp1)
+
+#==================================================================##
+k <- 3
+nMC <- 50000
+
+res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = 10000, 
+                    software = "rstan")
+rel3_CF <- piv_rel(res3_CF)
+piv_plot(y=y, res3_CF, rel3_CF, par = c("mean"), type="chains")
+
+posterior3_CF <- as.array(res3_CF$stanfit)
+mcmc_intervals(posterior3_CF, regex_pars = c("mu","sigma"))
+#==================================================================##
+# 4 component Gaussian mixture model via Stan
+#==================================================================##
+
+dataC = list(N=length(myLI2), y=myLI2, k=4,
+             mu_0=0, B0inv=0.1,
+             mu_sigma=0, tau_sigma=2)
+
+#==================================================================##
+
+fit_univ4_CF <-  stan(model_code = mix_univ,
+                      data=dataC,
+                      chains = 4,
+                      iter = 50000)
+
+#==================================================================##
+
+printed <- cat(print(fit_univ4_CF, pars =c("mu", "eta", "sigma")))
+Parker_univ4_CF <- rstan::extract(fit_univ4_CF)
+
+traceplot(fit_univ4_CF)
+
+#==================================================================##
+
+library(loo)
+log_lik3_CF<-extract_log_lik(fit_univ4_CF, merge_chains=FALSE)
+
+waic3<-waic(log_lik3_CF)
+r_eff3_CF <- relative_eff(exp(log_lik3_CF), cores = 2)
+loo_3_CF <- loo(log_lik3_CF, r_eff = r_eff3_CF, cores = 2)
+print(loo_3_CF)
+
+# Compare
+comp2 <- loo_compare(loo_1_CF, loo_2_CF, loo_3_CF)
+print(comp2)
+
+#==================================================================##
+k <- 4
+nMC <- 50000
+
+res4_CF <- piv_MCMC(y = myLI2, k = k, nMC = 10000, 
+                    software = "rstan")
+rel4_CF <- piv_rel(res4_CF)
+piv_plot(y=y, res4_CF, rel4_CF, par = c("mean"), type="chains")
+
+posterior4_CF <- as.array(res4_CF$stanfit)
+mcmc_intervals(posterior4_CF, regex_pars = c("mu","sigma"))
