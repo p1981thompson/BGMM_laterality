@@ -41,7 +41,7 @@ w<-which(LIs$index_EHI<(-89))
 LIs$handed3[w]<-'Extreme.left'
 
 myLI<-LIs$Day1_DL_acc_LI[complete.cases(LIs$Day1_DL_acc_LI)]
-
+my
 #==================================================================##
 # k <- 3
 # nMC <- 15000
