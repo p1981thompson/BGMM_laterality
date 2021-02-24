@@ -52,7 +52,7 @@ abstract: |
   <!-- https://tinyurl.com/ybremelq -->
   
   
-keywords          : "Bayesian, Gaussian Mixture Model, Language, Hemispheric lateralisation, Online testing"
+keywords          : "Bayesian, Gaussian Mixture Model, Language, Hemispheric lateralisation, Online testing, Pivotal units"
 wordcount         : "X"
 
 bibliography      : ["BGMMreferences.bib"]
@@ -67,7 +67,7 @@ draft             : no
 
 documentclass     : "apa6"
 classoption       : "man"
-output            : papaja::apa6_word
+output            : papaja::apa6_pdf
 ---
 
 ```{r setup, include = FALSE}
@@ -80,6 +80,10 @@ library("papaja")
 set.seed(1981)
 knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
 ```
+
+# Introduction
+
+
 
 # Research Question(s)
 
@@ -138,14 +142,14 @@ myft
 
 ### Finite Gaussian mixture model
 
-The Gaussian mixture model with $m$ components for the response variable $Y_{i}$ given the covariates $\boldsymbol{x}_{i}, i=1,2,\ldots,n.$, has the conditional distribution as follows:
+The Gaussian mixture model with $m$ components for the response variable $Y_{i}$ has the distribution as follows:
 
 $$
 y_{i} \sim \sum_{k=1}^{m}\phi_{k}\mathcal{N}_{k}(\mu_{k},\sigma_{k})
 $$
 
 
-where $\phi_{k}$ is a vector of mixing proportions provided $\sum_{k=1}^{m}\phi_{k}=1$, $\phi_{k}>0$, $k=1,2,\ldots,m$, $\beta_{k}$ are $k$ vectors of model parameters, and $\sigma_{k}$  are the $k$ variance parameters. We also define $y$ as observations from our response variable and $x$ as a set of covariates. This model requires that the error terms are independent and identically distributed, and follow a normal distribution with mean zero and constant variance. 
+where $\phi_{k}$ is a vector of mixing proportions provided $\sum_{k=1}^{m}\phi_{k}=1$, $\phi_{k}>0$, $k=1,2,\ldots,m$, $\beta_{k}$ are $m$ vectors of model parameters, and $\sigma_{k}$  are the $m$ variance parameters. We also define $y$ as observations from our response variable. 
 
 Following @Richardson_1997 and @Gelman_2004, we ensure identifiability by introducing a latent allocation variable $z_{i}, i=1,2,\ldots,n.$ that indicates the group membership for each $i^{th}$ observation as this is initially unknown. 
 
@@ -160,15 +164,11 @@ The $z_{i} = (z_{i,1},\ldots,z_{i,m})$ are independently drawn from the distribu
 
 $p(z_{i}=k)=\phi_{k}$, for $k=1,2,\ldots, m.$
 
-
-then, the observations are drawn from their corresponding subpopulations, given the values of $z_{i}$,
+then the observations are drawn from their corresponding sub-populations, given the values of $z_{i}$,
 
 $y_{i}|z\sim f(\cdot|\theta_{z_{k}})$, for $i=1,2,\ldots, n.$
 
-
- where $\theta = (\mu,\sigma,\phi)$ are the model parameters.
-
-We fit the model within a Bayesian framework, so we specify the following priors:
+where $\theta = (\mu,\sigma,\phi)$ are the model parameters. We fit the model within a Bayesian framework using R and stan [@R-base;@Stan_2020], and use the model configuration from [@Egidi_2018; @Egidi_2020; see package vignette "Dealing with label Switching"]. Hence, we specify the following priors:
 
 $$
 \mu_{k} \sim \mathcal{N}(\mu_{0},1/B0inv);
@@ -176,11 +176,15 @@ $$
 \phi_{k} \sim Uniform(0,1);
 $$
 
-### Label switching problem solution
+where $\mathbf{\phi}=(\phi_{1},\ldots,\phi_{k})$ are the vector of mixing parameters for $k$ components. We also use hyperparameters (sub-parameters that define the prior distributions of the main parameters): $\mu_{0}=0$, $B0inv=0.1$, $\mu_{\sigma}=0$, $\tau_{\sigma}=2$. A non-informative, uniform prior is selected for the mixing parameters, as we do not have prior belief on the size of the mixing components or the number of components present.
 
-When using a Bayesian framework for the analysis of mixture models, label switching is a familiar problem. The 
+When using a Bayesian framework for the analysis of finite mixture models, label switching is a familiar problem when Markov chain Monte Carlo (MCMC) algorithm is used to search over a complex posterior distributions [@Egidi_2018]. We adopt the pivotal units approach of @Egidi_2018 to deal with label switching. The post-MCMC relabelling of chains ensures a unique solution for parameter estimates and avoids a multimodal posterior. The 
 
 # Results
+
+## Chimeric faces
+
+## Dichotic Listening
 
 # Discussion
 
