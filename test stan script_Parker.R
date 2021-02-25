@@ -125,13 +125,16 @@ data = list(N=length(myLI), y=myLI, k=2,
 fit_univ2_DL <-  stan(model_code = mix_univ,
                   data=data,
                   chains = 4,
-                  iter = 50000)
+                  iter = 50000,
+                  thin=5)
 
 #==================================================================##
 
 Parker_univ2_DL <- print(fit_univ2_DL, pars = c("mu","sigma","eta"))
 
+png(filename = "Parker_univ2_DL_trace_stan_direct.png", width = 12, height = 6, units = "in",res=300)
 traceplot(fit_univ2_DL)
+dev.off()
 #==================================================================##
 
 library(loo)
@@ -140,28 +143,25 @@ log_lik1_DL<-extract_log_lik(fit_univ2_DL, merge_chains=FALSE)
 
 waic1_DL<-waic(log_lik1_DL)
 
-waic1_DL_tab <- flextable(waic1)
-
 r_eff_DL <- relative_eff(exp(log_lik1_DL), cores = 2)
 loo_1_DL <- loo(log_lik1_DL, r_eff = r_eff_DL, cores = 2)
 
-loo_1_DL_tab<-flextable(loo_1_DL)
 
 #==================================================================##
  k <- 2
- nMC <- 50000
+ nMC <- 10000
  
- res2_DL <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
+ res2_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
                   software = "rstan")
  rel2_DL <- piv_rel(res2_DL)
  
- png(filename = "Parker_univ2_DL_trace.png", width = 10, height = 4, units = "in")
+ png(filename = "Parker_univ2_DL_trace.png", width = 10, height = 4, units = "in",res=300)
  piv_plot(y=myLI, res2_DL, rel2_DL, par = c("mean"), type="chains")
  dev.off()
  
  posterior2_DL <- as.array(res2_DL$stanfit)
  
- png(filename = "Parker_univ2_DL_forest.png", width = 10, height = 4, units = "in")
+ png(filename = "Parker_univ2_DL_forest.png", width = 10, height = 4, units = "in",res=300)
  mcmc_intervals(posterior2_DL, regex_pars = c("mu","sigma"))
  dev.off()
 #==================================================================##
@@ -177,14 +177,16 @@ dataB = list(N=length(myLI), y=myLI, k=3,
 fit_univ3_DL <-  stan(model_code = mix_univ,
                    data=dataB,
                    chains = 4,
-                   iter = 50000)
+                   iter = 50000,
+                   thin=5)
 
 #==================================================================##
 
 Parker_univ3_DL <- print(fit_univ3_DL, pars = c("mu","sigma","eta"))
 
-traceplot(fit_univ3_DL)
-
+png(filename = "Parker_univ3_DL_trace_stan_direct.png", width = 12, height = 6, units = "in",res=300)
+traceplot(fit_univ3_DL, pars = c("mu","sigma","eta"))
+dev.off()
 #==================================================================##
 
 
@@ -192,12 +194,10 @@ log_lik2_DL<-extract_log_lik(fit_univ3_DL, merge_chains=FALSE)
 
 waic2<-waic(log_lik2_DL)
 
-waic2_DL_tab<-flextable(waic2)
 
-r_eff2 <- relative_eff(exp(log_lik2_DL), cores = 2)
-loo_2 <- loo(log_lik2_DL, r_eff = r_eff2_DL, cores = 2)
+r_eff2_DL <- relative_eff(exp(log_lik2_DL), cores = 2)
+loo_2_DL <- loo(log_lik2_DL, r_eff = r_eff2_DL, cores = 2)
 
-loo_2_DL_tab<-flextable(loo_2_DL)
 
 # Compare
 comp1 <- loo_compare(loo_1_DL, loo_2_DL)
@@ -205,19 +205,19 @@ print(comp1)
 
 #==================================================================##
 k <- 3
-nMC <- 50000
+nMC <- 10000
 
-res3_DL <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
+res3_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
                  software = "rstan")
 rel3_DL <- piv_rel(res3_DL)
 
-png(filename = "Parker_univ3_DL_trace.png", width = 10, height = 4, units = "in")
-piv_plot(y=y, res3_DL, rel3_DL, par = c("mean"), type="chains")
+png(filename = "Parker_univ3_DL_trace.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI, res3_DL, rel3_DL, par = c("mean"), type="chains")
 dev.off()
 
 posterior3_DL <- as.array(res3_DL$stanfit)
 
-png(filename = "Parker_univ3_DL_forest.png", width = 10, height = 4, units = "in")
+png(filename = "Parker_univ3_DL_forest.png", width = 10, height = 4, units = "in",res=300)
 mcmc_intervals(posterior3_DL, regex_pars = c("mu","sigma"))
 dev.off()
 
@@ -234,13 +234,16 @@ dataC = list(N=length(myLI), y=myLI, k=4,
 fit_univ4_DL <-  stan(model_code = mix_univ,
                    data=dataC,
                    chains = 4,
-                   iter = 50000)
+                   iter = 50000,
+                   thin=5)
 
 #==================================================================##
 
 Parker_univ4_DL <- print(fit_univ4_DL, pars = c("mu","sigma","eta"))
 
-traceplot(fit_univ4_DL)
+png(filename = "Parker_univ4_DL_trace_stan_direct.png", width = 12, height = 6, units = "in",res=300)
+traceplot(fit_univ4_DL, pars = c("mu","sigma","eta"))
+dev.off()
 
 #==================================================================##
 
@@ -248,12 +251,11 @@ library(loo)
 log_lik3_DL<-extract_log_lik(fit_univ4_DL, merge_chains=FALSE)
 
 waic3<-waic(log_lik3_DL)
-wiac3_DL_tab<-flextable(waic3)
+
 
 r_eff3_DL <- relative_eff(exp(log_lik3_DL), cores = 2)
 loo_3_DL <- loo(log_lik3_DL, r_eff = r_eff3_DL, cores = 2)
 
-loo_3_DL_tab<-flextable(loo_3_DL)
 
 # Compare
 comp2 <- loo_compare(loo_1_DL, loo_2_DL, loo_3_DL)
@@ -261,19 +263,19 @@ print(comp2)
 
 #==================================================================##
 k <- 4
-nMC <- 50000
+nMC <- 10000
 
-res4_DL <- piv_MCMC(y = myLI, k = k, nMC = 10000, 
+res4_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
                  software = "rstan")
 rel4_DL <- piv_rel(res4_DL)
 
-png(filename = "Parker_univ4_DL_trace.png", width = 10, height = 4, units = "in")
-piv_plot(y=y, res4_DL, rel4_DL, par = c("mean"), type="chains")
+png(filename = "Parker_univ4_DL_trace.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI, res4_DL, rel4_DL, par = c("mean"), type="chains")
 dev.off()
 
 posterior4_DL <- as.array(res4_DL$stanfit)
 
-png(filename = "Parker_univ4_DL_trace.png", width = 10, height = 4, units = "in")
+png(filename = "Parker_univ4_DL_forest.png", width = 10, height = 4, units = "in",res=300)
 mcmc_intervals(posterior4_DL, regex_pars = c("mu","sigma"))
 dev.off()
 #==================================================================##
@@ -292,44 +294,44 @@ data = list(N=length(myLI2), y=myLI2, k=2,
 fit_univ2_CF <-  stan(model_code = mix_univ,
                       data=data,
                       chains = 4,
-                      iter = 50000)
+                      iter = 50000,
+                      thin=5)
 
 #==================================================================##
 
 Parker_univ2_CF <- print(fit_univ2_CF, pars = c("mu","sigma","eta"))
 
+png(filename = "Parker_univ2_CF_trace_stan_direct.png", width = 12, height = 6, units = "in",res=300)
 traceplot(fit_univ2_CF)
+dev.off()
+
 #==================================================================##
 
 library(loo)
 log_lik1_CF<-extract_log_lik(fit_univ2_CF, merge_chains=FALSE)
 
-waic1<-waic(log_lik1_CF)
+waic1_CF<-waic(log_lik1_CF)
 
-waic1_CF_tab<-flextable(waic1)
 
 r_eff_CF <- relative_eff(exp(log_lik1_CF), cores = 2)
 loo_1_CF <- loo(log_lik1_CF, r_eff = r_eff_CF, cores = 2)
 
-loo_1_CF_tab<-flextable(loo_1_CF)
-
-print(loo_1_CF)
 
 #==================================================================##
 k <- 2
-nMC <- 50000
+nMC <- 10000
 
-res2_CF <- piv_MCMC(y = myLI2, k = k, nMC = 10000, 
+res2_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
                     software = "rstan")
 rel2_CF <- piv_rel(res2_CF)
 
-png(filename = "Parker_univ2_CF_trace.png", width = 10, height = 4, units = "in")
-piv_plot(y=myLI, res2_CF, rel2_CF, par = c("mean"), type="chains")
+png(filename = "Parker_univ2_CF_trace.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI2, res2_CF, rel2_CF, par = c("mean"), type="chains")
 dev.off()
 
 posterior2_CF <- as.array(res2_CF$stanfit)
 
-png(filename = "Parker_univ2_CF_forest.png", width = 10, height = 4, units = "in")
+png(filename = "Parker_univ2_CF_forest.png", width = 10, height = 4, units = "in",res=300)
 mcmc_intervals(posterior2_CF, regex_pars = c("mu","sigma"))
 dev.off()
 #==================================================================##
@@ -345,49 +347,46 @@ dataB = list(N=length(myLI2), y=myLI2, k=3,
 fit_univ3_CF <-  stan(model_code = mix_univ,
                       data=dataB,
                       chains = 4,
-                      iter = 50000)
+                      iter = 50000,
+                      thin=5)
 
 #==================================================================##
 
 Parker_univ3_CF <- print(fit_univ3_CF, pars = c("mu","sigma","eta"))
 
-traceplot(fit_univ3_CF)
-
+png(filename = "Parker_univ3_CF_trace_stan_direct.png", width = 12, height = 6, units = "in",res=300)
+traceplot(fit_univ3_CF, pars = c("mu","sigma","eta"))
+dev.off()
 #==================================================================##
 
 
 log_lik2_CF<-extract_log_lik(fit_univ3_CF, merge_chains=FALSE)
 
-waic2<-waic(log_lik2_CF)
-
-waic2_CF_tab<-flextable(waic2)
-
-r_eff2 <- relative_eff(exp(log_lik2_CF), cores = 2)
-loo_2 <- loo(log_lik2_CF, r_eff = r_eff2_CF, cores = 2)
-
-loo_2_CF<-flextable(loo_2)
+waic2_CF<-waic(log_lik2_CF)
 
 
+r_eff2_CF <- relative_eff(exp(log_lik2_CF), cores = 2)
+loo_2_CF <- loo(log_lik2_CF, r_eff = r_eff2_CF, cores = 2)
 
 # Compare
-comp1 <- loo_compare(loo_1_CF, loo_2_CF)
+comp1_CF <- loo_compare(loo_1_CF, loo_2_CF)
 print(comp1)
 
 #==================================================================##
 k <- 3
-nMC <- 50000
+nMC <- 10000
 
-res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = 10000, 
+res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
                     software = "rstan")
 rel3_CF <- piv_rel(res3_CF)
 
-png(filename = "Parker_univ3_CF_trace.png", width = 10, height = 4, units = "in")
-piv_plot(y=y, res3_CF, rel3_CF, par = c("mean"), type="chains")
+png(filename = "Parker_univ3_CF_trace.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI2, res3_CF, rel3_CF, par = c("mean"), type="chains")
 dev.off()
 
 posterior3_CF <- as.array(res3_CF$stanfit)
 
-png(filename = "Parker_univ3_CF_forest.png", width = 10, height = 4, units = "in")
+png(filename = "Parker_univ3_CF_forest.png", width = 10, height = 4, units = "in",res=300)
 mcmc_intervals(posterior3_CF, regex_pars = c("mu","sigma"))
 dev.off()
 #==================================================================##
@@ -403,47 +402,48 @@ dataC = list(N=length(myLI2), y=myLI2, k=4,
 fit_univ4_CF <-  stan(model_code = mix_univ,
                       data=dataC,
                       chains = 4,
-                      iter = 50000)
+                      iter = 50000,
+                      thin=5)
 
 #==================================================================##
 
 Parker_univ4_CF <- print(fit_univ4_CF, pars = c("mu","sigma","eta"))
 
-traceplot(fit_univ4_CF)
-
+png(filename = "Parker_univ4_CF_trace_stan_direct.png", width = 12, height = 6, units = "in",res=300)
+traceplot(fit_univ4_CF, pars = c("mu","sigma","eta"))
+dev.off()
 #==================================================================##
 
 library(loo)
 log_lik3_CF<-extract_log_lik(fit_univ4_CF, merge_chains=FALSE)
 
-waic3<-waic(log_lik3_CF)
-
-waic3_CF_tab<-flextable(waic3)
+waic3_CF<-waic(log_lik3_CF)
 
 r_eff3_CF <- relative_eff(exp(log_lik3_CF), cores = 2)
 loo_3_CF <- loo(log_lik3_CF, r_eff = r_eff3_CF, cores = 2)
 
-loo_3_CF<-flextable(loo_3_CF)
-
-
 # Compare
-comp2 <- loo_compare(loo_1_CF, loo_2_CF, loo_3_CF)
-print(comp2)
+comp2_CF <- loo_compare(loo_1_CF, loo_2_CF, loo_3_CF)
+
 
 #==================================================================##
 k <- 4
-nMC <- 50000
+nMC <- 10000
 
-res4_CF <- piv_MCMC(y = myLI2, k = k, nMC = 10000, 
+res4_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
                     software = "rstan")
+write.csv(x=res4_CF$stanfit,file="/Volumes/PSYHOME/PSYRES/pthompson/DVMB/BGMM_laterality/model_est_res4_CF.csv")
 rel4_CF <- piv_rel(res4_CF)
 
-png(filename = "Parker_univ4_CF_trace.png", width = 10, height = 4, units = "in")
-piv_plot(y=y, res4_CF, rel4_CF, par = c("mean"), type="chains")
+png(filename = "Parker_univ4_CF_trace.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI2, res4_CF, rel4_CF, par = c("mean"), type="chains")
 dev.off()
 
 posterior4_CF <- as.array(res4_CF$stanfit)
 
-png(filename = "Parker_univ4_CF_forest.png", width = 10, height = 4, units = "in")
+png(filename = "Parker_univ4_CF_forest.png", width = 10, height = 4, units = "in",res=300)
 mcmc_intervals(posterior4_CF, regex_pars = c("mu","sigma"))
 dev.off()
+
+save.image("/Volumes/PSYHOME/PSYRES/pthompson/DVMB/BGMM_laterality/feb24.Rdata")
+savehistory("/Volumes/PSYHOME/PSYRES/pthompson/DVMB/BGMM_laterality/hist_feb24.Rhistory")
