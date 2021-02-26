@@ -51,12 +51,136 @@ myLI<-LIs$Day1_DL_acc_LI[complete.cases(LIs$Day1_DL_acc_LI)]
 myLI2<-LIs$Day1_CF_acc_LI[complete.cases(LIs$Day1_CF_acc_LI)]
 #==================================================================##
 
+plot.normal.components <- function(mixture,component.number,...) {
+  curve(mixture$lambda[component.number] *
+          dnorm(x,mean=mixture$mu[component.number],
+                sd=mixture$sigma[component.number]), add=TRUE, ...)
+}
+
+dnormalmix <- function(x,mixture,log=FALSE) {
+  lambda <- mixture$lambda
+  k <- length(lambda)
+  # Calculate share of likelihood for all data for one component
+  like.component <- function(x,component) {
+    lambda[component]*dnorm(x,mean=mixture$mu[component],
+                            sd=mixture$sigma[component])
+  }
+  # Create array with likelihood shares from all components over all data
+  likes <- sapply(1:k,like.component,x=x)
+  # Add up contributions from components
+  d <- rowSums(likes)
+  if (log) {
+    d <- log(d) }
+  return(d) }
+loglike.normalmix <- function(x,mixture) {
+  loglike <- dnormalmix(x,mixture,log=TRUE)
+  return(sum(loglike))
+}
 
 #==================================================================##
+# FREQUENTIST APPROACH via EM algorithm.
+#==================================================================##
+
+# Basic EM algorithm script using mixtools (https://www.stat.cmu.edu/~cshalizi/402/lectures/20-mixture-examples/lecture-20.pdf)
+
+LI_fit_DL<-normalmixEM(myLI)
+plot(LI_fit_DL, density=TRUE, cex.axis=1.4, cex.lab=1.4, cex.main=1.8,main2="Dichotic Listening", xlab2="LI")
+
+LI_fit_CF<-normalmixEM(myLI2)
+plot(LI_fit_CF, density=TRUE, cex.axis=1.4, cex.lab=1.4, cex.main=1.8,main2="Chimeric faces", xlab2="LI")
+
+
+
+LI.DL.boot <- boot.comp(myLI,max.comp=10,mix.type="normalmix", maxit=400,epsilon=1e-2)
+
+LI.CF.boot <- boot.comp(myLI2,max.comp=10,mix.type="normalmix", maxit=400,epsilon=1e-2)
+
+#Dichotic Listening#
+
+LI.DL.k2 <- normalmixEM(myLI,k=2,maxit=100,epsilon=0.01)
+LI.DL.k3 <- normalmixEM(myLI,k=3,maxit=100,epsilon=0.01)
+LI.DL.k4 <- normalmixEM(myLI,k=4,maxit=100,epsilon=0.01)
+
+plot(hist(myLI,breaks=101),col="grey",border="grey",freq=FALSE,
+     xlab="LI",main="Dichotic Listening (k=2)")
+lines(density(myLI),lty=2)
+sapply(1:2,plot.normal.components,mixture=LI.DL.k2)
+
+
+plot(hist(myLI,breaks=101),col="grey",border="grey",freq=FALSE,
+     xlab="LI",main="Dichotic Listening (k=3)")
+lines(density(myLI),lty=2)
+sapply(1:3,plot.normal.components,mixture=LI.DL.k3)
+
+plot(hist(myLI,breaks=101),col="grey",border="grey",freq=FALSE,
+     xlab="LI",main="Dichotic Listening (k=4)")
+lines(density(myLI),lty=2)
+sapply(1:4,plot.normal.components,mixture=LI.DL.k4)
+
+#Chimeric faces#
+
+LI.CF.k2 <- normalmixEM(myLI2,k=2,maxit=100,epsilon=0.01)
+LI.CF.k3 <- normalmixEM(myLI2,k=3,maxit=100,epsilon=0.01)
+LI.CF.k4 <- normalmixEM(myLI2,k=4,maxit=100,epsilon=0.01)
+
+plot(hist(myLI2,breaks=101),col="grey",border="grey",freq=FALSE,
+     xlab="LI",main="Chimeric faces (k=2)")
+lines(density(myLI2),lty=2)
+sapply(1:2,plot.normal.components,mixture=LI.CF.k2)
+
+
+plot(hist(myLI2,breaks=101),col="grey",border="grey",freq=FALSE,
+     xlab="LI",main="Chimeric faces (k=3)")
+lines(density(myLI2),lty=2)
+sapply(1:3,plot.normal.components,mixture=LI.CF.k3)
+
+plot(hist(myLI2,breaks=101),col="grey",border="grey",freq=FALSE,
+     xlab="LI",main="Chimeric faces (k=4)")
+lines(density(myLI2),lty=2)
+sapply(1:4,plot.normal.components,mixture=LI.CF.k4)
+
+####################################################################
+# Cross validation to check number of components.
+
+CVfun<-function(data)
+{
+n <- length(data)
+data.points <- 1:n
+data.points <- sample(data.points) # Permute randomly
+train <- data.points[1:floor(n/2)] # First random half is training
+
+test <- data.points[-(1:floor(n/2))] # 2nd random half is testing
+candidate.component.numbers <- 2:10
+loglikes <- vector(length=1+length(candidate.component.numbers))
+# k=1 needs special handling
+mu<-mean(data[train]) # MLE of mean
+sigma <- sd(data[train])*sqrt((n-1)/n) # MLE of standard deviation
+loglikes[1] <- sum(dnorm(data[test],mu,sigma,log=TRUE))
+for (k in candidate.component.numbers) {
+  mixture <- normalmixEM(data[train],k=k,maxit=400,epsilon=1e-2)
+  loglikes[k] <- loglike.normalmix(data[test],mixture=mixture)
+}
+
+plot(x=1:10, y=loglikes,xlab="Number of mixture components",
+     ylab="Log-likelihood on testing data")
+}
+
+CVfun(myLI)
+CVfun(myLI2)
+
+#Pretty inconclusive!
+#==================================================================##
+#==================================================================##
+#
+# BAYESIAN APPROACH!!
+#
+#==================================================================##
+#
+#
 # Stan model
 #==================================================================##
 
-mix_univ <-"
+mix_univ_new_priors <-"
         data {
           int<lower=1> k;          // number of mixture components
           int<lower=1> N;          // number of data points
@@ -123,10 +247,10 @@ data = list(N=length(myLI), y=myLI, k=2,
 #==================================================================##
 
 fit_univ2_DL <-  stan(model_code = mix_univ,
-                  data=data,
-                  chains = 4,
-                  iter = 50000,
-                  thin=5)
+                      data=data,
+                      chains = 4,
+                      iter = 50000,
+                      thin=5)
 
 #==================================================================##
 
@@ -148,22 +272,26 @@ loo_1_DL <- loo(log_lik1_DL, r_eff = r_eff_DL, cores = 2)
 
 
 #==================================================================##
- k <- 2
- nMC <- 10000
- 
- res2_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                  software = "rstan")
- rel2_DL <- piv_rel(res2_DL)
- 
- png(filename = "Parker_univ2_DL_trace.png", width = 10, height = 4, units = "in",res=300)
- piv_plot(y=myLI, res2_DL, rel2_DL, par = c("mean"), type="chains")
- dev.off()
- 
- posterior2_DL <- as.array(res2_DL$stanfit)
- 
- png(filename = "Parker_univ2_DL_forest.png", width = 10, height = 4, units = "in",res=300)
- mcmc_intervals(posterior2_DL, regex_pars = c("mu","sigma"))
- dev.off()
+k <- 2
+nMC <- 10000
+
+res2_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
+                    software = "rstan")
+rel2_DL <- piv_rel(res2_DL)
+
+png(filename = "Parker_univ2_DL_trace.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI, res2_DL, rel2_DL, par = c("mean"), type="chains")
+dev.off()
+
+png(filename = "Parker_univ2_DL_hist.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI, res2_DL, rel2_DL, par = c("mean"), type="hist")
+dev.off()
+
+posterior2_DL <- as.array(res2_DL$stanfit)
+
+png(filename = "Parker_univ2_DL_forest.png", width = 10, height = 4, units = "in",res=300)
+mcmc_intervals(posterior2_DL, regex_pars = c("mu","sigma"))
+dev.off()
 #==================================================================##
 # 3 component Gaussian mixture model via Stan
 #==================================================================##
@@ -175,10 +303,10 @@ dataB = list(N=length(myLI), y=myLI, k=3,
 #==================================================================##
 
 fit_univ3_DL <-  stan(model_code = mix_univ,
-                   data=dataB,
-                   chains = 4,
-                   iter = 50000,
-                   thin=5)
+                      data=dataB,
+                      chains = 4,
+                      iter = 50000,
+                      thin=5)
 
 #==================================================================##
 
@@ -208,11 +336,15 @@ k <- 3
 nMC <- 10000
 
 res3_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                 software = "rstan")
+                    software = "rstan")
 rel3_DL <- piv_rel(res3_DL)
 
 png(filename = "Parker_univ3_DL_trace.png", width = 10, height = 4, units = "in",res=300)
 piv_plot(y=myLI, res3_DL, rel3_DL, par = c("mean"), type="chains")
+dev.off()
+
+png(filename = "Parker_univ3_DL_hist.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI, res3_DL, rel3_DL, par = c("mean"), type="hist")
 dev.off()
 
 posterior3_DL <- as.array(res3_DL$stanfit)
@@ -226,16 +358,16 @@ dev.off()
 #==================================================================##
 
 dataC = list(N=length(myLI), y=myLI, k=4,
-             mu_0=0, B0inv=0.1,
+             mu_0=0, B0inv=0.02,
              mu_sigma=0, tau_sigma=2)
 
 #==================================================================##
 
 fit_univ4_DL <-  stan(model_code = mix_univ,
-                   data=dataC,
-                   chains = 4,
-                   iter = 50000,
-                   thin=5)
+                      data=dataC,
+                      chains = 4,
+                      iter = 50000,
+                      thin=5)
 
 #==================================================================##
 
@@ -263,14 +395,18 @@ print(comp2)
 
 #==================================================================##
 k <- 4
-nMC <- 10000
+nMC <- 20000
 
 res4_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                 software = "rstan")
+                    software = "rstan",priors = list(mu_sigma = 0, tau_sigma = 3, B0inv=0.01))
 rel4_DL <- piv_rel(res4_DL)
 
 png(filename = "Parker_univ4_DL_trace.png", width = 10, height = 4, units = "in",res=300)
 piv_plot(y=myLI, res4_DL, rel4_DL, par = c("mean"), type="chains")
+dev.off()
+
+png(filename = "Parker_univ4_DL_hist.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI, res4_DL, rel4_DL, par = c("mean"), type="hist")
 dev.off()
 
 posterior4_DL <- as.array(res4_DL$stanfit)
@@ -322,11 +458,15 @@ k <- 2
 nMC <- 10000
 
 res2_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
-                    software = "rstan")
+                    software = "rstan",priors = list(mu_sigma = 0, tau_sigma = 3, B0inv=0.01))
 rel2_CF <- piv_rel(res2_CF)
 
 png(filename = "Parker_univ2_CF_trace.png", width = 10, height = 4, units = "in",res=300)
 piv_plot(y=myLI2, res2_CF, rel2_CF, par = c("mean"), type="chains")
+dev.off()
+
+png(filename = "Parker_univ2_CF_hist.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI2, res2_CF, rel2_CF, par = c("mean"), type="hist")
 dev.off()
 
 posterior2_CF <- as.array(res2_CF$stanfit)
@@ -377,11 +517,15 @@ k <- 3
 nMC <- 10000
 
 res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
-                    software = "rstan")
+                    software = "rstan",priors = list(mu_sigma = 0, tau_sigma = 3, B0inv=0.01))
 rel3_CF <- piv_rel(res3_CF)
 
 png(filename = "Parker_univ3_CF_trace.png", width = 10, height = 4, units = "in",res=300)
 piv_plot(y=myLI2, res3_CF, rel3_CF, par = c("mean"), type="chains")
+dev.off()
+
+png(filename = "Parker_univ3_CF_hist.png", width = 10, height = 4, units = "in",res=300)
+piv_plot(y=myLI2, res3_CF, rel3_CF, par = c("mean"), type="hist")
 dev.off()
 
 posterior3_CF <- as.array(res3_CF$stanfit)
