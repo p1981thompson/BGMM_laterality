@@ -168,12 +168,13 @@ then the observations are drawn from their corresponding sub-populations, given 
 
 $y_{i}|z\sim f(\cdot|\theta_{z_{k}})$, for $i=1,2,\ldots, n.$
 
-where $\theta = (\mu,\sigma,\phi)$ are the model parameters. We fit the model within a Bayesian framework using R and stan [@R-base;@Stan_2020], and use the model configuration from [@Egidi_2018; @Egidi_2020; see package vignette "Dealing with label Switching"]. Hence, we specify the following priors:
+where $\theta = (\mu,\sigma,\phi)$ are the model parameters. We fit the model within a Bayesian framework using R and JAGS [@R-base;@Plummer_2003;@R2jags_2020], and use the model configuration from [@Egidi_2018; @Egidi_2020; see package vignette "Dealing with label Switching"]. Hence, we specify the following priors:
 
 $$
-\mu_{k} \sim \mathcal{N}(\mu_{0},1/B0inv);
-\sigma_{K} \sim Lognormal(\mu_{0},\tau_{0})
-\phi_{k} \sim Uniform(0,1);
+\mu_{k} \sim \mathcal{N}(\mu_{0},1/B0);\\
+\sigma_{K} \sim invGamma(\nu_{0}/2,\nu_{0}S_{0}/2)\\
+\phi \sim Dirichlet(\mathbf{\alpha});\\
+S_{0} \sim Gamma(g_{0}/2,g_{0}G_{0}/2)
 $$
 
 where $\mathbf{\phi}=(\phi_{1},\ldots,\phi_{k})$ are the vector of mixing parameters for $k$ components. We also use hyperparameters (sub-parameters that define the prior distributions of the main parameters): $\mu_{0}=0$, $B0inv=0.1$, $\mu_{\sigma}=0$, $\tau_{\sigma}=2$. A non-informative, uniform prior is selected for the mixing parameters, as we do not have prior belief on the size of the mixing components or the number of components present.
