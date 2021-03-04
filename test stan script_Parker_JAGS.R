@@ -6,13 +6,8 @@ library(R2jags)
 library(mixtools)
 library(coda)
 library(lattice)
+library(MCMCvis)
 
-
-#Resource used to work out how to extract loglikelihood and calc WAIC and LOO.
-#https://discourse.mc-stan.org/t/calculating-the-likelihood-for-loo-in-a-binomial-mixture-model/4787/5
-
-options(mc.cores = 4)
-rstan_options(auto_write = TRUE)
 
 #https://cran.r-project.org/web/packages/pivmet/vignettes/Relabelling_in_Bayesian_mixtures_by_pivotal_units.html
 
@@ -187,8 +182,12 @@ model	{
     y[i] ~ dnorm(mu[S[i]],tau[S[i]]);
     S[i] ~ dcat(eta[]);
   }
+  
+  mu[1] ~ dnorm(b01,B0inv);
+  mu[2] ~ dnorm(b02,B0inv) T(mu[1],);
+  
   for (j in 1:k) {
-    mu[j] ~ dnorm(b0,B0inv);
+    
     tau[j] ~ dgamma(nu0Half,nu0S0Half);
     sigma[j] <- 1/tau[j]
   }
@@ -199,24 +198,71 @@ model	{
 }
 ",file="JAGS_mod1.txt")
 
+cat("
+model	{
+  for (i in 1:N) {
+    y[i] ~ dnorm(mu[S[i]],tau[S[i]]);
+    S[i] ~ dcat(eta[]);
+  }
+  
+  mu[1] ~ dnorm(b01,B0inv);
+  mu[2] ~ dnorm(b02,B0inv) T(mu[1],);
+  mu[3] ~ dnorm(b03,B0inv) T(mu[2],);
+  
+  for (j in 1:k) {
+    
+    tau[j] ~ dgamma(nu0Half,nu0S0Half);
+    sigma[j] <- 1/tau[j]
+  }
+  S0 ~ dgamma(g0Half,g0G0Half);
+  nu0S0Half <- nu0Half * S0;
+  
+  eta[1:k] ~ ddirch(e[1:k]);
+}
+",file="JAGS_mod2.txt")
+
+cat("
+model	{
+  for (i in 1:N) {
+    y[i] ~ dnorm(mu[S[i]],tau[S[i]]);
+    S[i] ~ dcat(eta[]);
+  }
+  
+  mu[1] ~ dnorm(b01,B0inv);
+  mu[2] ~ dnorm(b02,B0inv) T(mu[1],);
+  mu[3] ~ dnorm(b03,B0inv) T(mu[2],);
+  mu[4] ~ dnorm(b04,B0inv) T(mu[3],);
+  
+  for (j in 1:k) {
+    
+    tau[j] ~ dgamma(nu0Half,nu0S0Half);
+    sigma[j] <- 1/tau[j]
+  }
+  S0 ~ dgamma(g0Half,g0G0Half);
+  nu0S0Half <- nu0Half * S0;
+  
+  eta[1:k] ~ ddirch(e[1:k]);
+}
+",file="JAGS_mod3.txt")
+
 
 ##########
 # Make a function for generating initial guesses
 
 init.generator1 <- function(){ list(
-  mu = runif(2, -100,100),
+  mu = c(runif(1, -100,0),runif(1, 0,100)),
   tau = 1/runif(2, 1,10),
   eta = runif(2, 0,1))
 }
 
 init.generator2 <- function(){ list(
-  mu = runif(3, -100,100),
+  mu = c(runif(1, -100,-33),runif(1, -32.9999,33),runif(1, 33.0000001,100)),
   tau = 1/runif(3, 1,10),
   eta = runif(3, 0,1))
 }
 
 init.generator3 <- function(){ list(
-  mu = runif(4, -100,100),
+  mu = c(runif(1, -100,-50),runif(1, -49.9999,0),runif(1, 0.00001,50),runif(1, 50.00001,100)),
   tau = 1/runif(4, 1,10),
   eta = runif(4, 0,1))
 }
@@ -231,14 +277,14 @@ init.generator3 <- function(){ list(
 # Package the data for JAGS
 
 data.package.DL2 <- list(N=length(myLI), y=myLI, k=2,
-                      b0=0, B0inv=0.1,
+                      b01=-1,b02=1, B0inv=0.005,
                       nu0Half=1,
-                      g0Half=1,g0G0Half=1, e=c(1,1))
+                      g0Half=1,g0G0Half=10, e=c(1,1))
 
 
-params.to.monitor <- c("eta","mu","tau")
+params.to.monitor <- c("eta","mu","tau","S")
 
-jags.fit.DL2 <- jags(data=data.package.DL2,inits=init.generator1,parameters.to.save=params.to.monitor,n.iter=10000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 2000,n.thin=5 )
+jags.fit.DL2 <- jags(data=data.package.DL2,inits=init.generator1,parameters.to.save=params.to.monitor,n.iter=20000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 4000,n.thin=5 )
 
 jagsfitDL2.mcmc <- as.mcmc(jags.fit.DL2) 
 
@@ -251,7 +297,7 @@ plot(jagsfitDL2.mcmc[,"mu[2]"])
 plot(jagsfitDL2.mcmc[,"tau[1]"])
 plot(jagsfitDL2.mcmc[,"tau[2]"])
 
-densityplot(jagsfitDL2.mcmc)
+#densityplot(jagsfitDL2.mcmc,parameters=c("eta","mu","tau"))
 
 DIC_DL2 <- jags.fit.DL2$BUGSoutput$DIC
 
@@ -259,10 +305,10 @@ DIC_DL2 <- jags.fit.DL2$BUGSoutput$DIC
 
 #==================================================================##
 k <- 2
-nMC <- 10000
+nMC <- 20000
 
-res2_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                    software = "rjags")
+res2_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, software = "rjags", priors=list(b0=0, B0inv=0.005, nu0Half=1, g0Half=1, g0G0Half=10, e=c(1,1)))
+
 rel2_DL <- piv_rel(res2_DL)
 
 png(filename = "Parker_univ2_DL_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -281,15 +327,13 @@ dev.off()
 # Package the data for JAGS
 
 data.package.DL3 <- list(N=length(myLI), y=myLI, k=3,
-                         b0=0, B0inv=0.1,
+                         b01=-50, b02=0, b03=50, B0inv=0.01,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=1, e=c(1,1,1))
-
-
+                         g0Half=1,g0G0Half=10, e=c(1,1,1))
 
 params.to.monitor <- c("eta","mu","tau")
 
-jags.fit.DL3 <- jags(data=data.package.DL3,inits=init.generator2,parameters.to.save=params.to.monitor,n.iter=10000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 2000,n.thin=5 )
+jags.fit.DL3 <- jags(data=data.package.DL3,inits=init.generator2,parameters.to.save=params.to.monitor,n.iter=100000,model.file="JAGS_mod2.txt",n.chains = 4,n.burnin = 20000,n.thin=5 )
 
 jagsfitDL3.mcmc <- as.mcmc(jags.fit.DL3) 
 
@@ -297,22 +341,27 @@ summary(jagsfitDL3.mcmc)
 
 plot(jagsfitDL3.mcmc[,"eta[1]"])
 plot(jagsfitDL3.mcmc[,"eta[2]"])
+plot(jagsfitDL3.mcmc[,"eta[3]"])
 plot(jagsfitDL3.mcmc[,"mu[1]"])
 plot(jagsfitDL3.mcmc[,"mu[2]"])
+plot(jagsfitDL3.mcmc[,"mu[3]"])
 plot(jagsfitDL3.mcmc[,"tau[1]"])
 plot(jagsfitDL3.mcmc[,"tau[2]"])
+plot(jagsfitDL3.mcmc[,"tau[3]"])
 
-densityplot(jagsfitDL3.mcmc)
+#densityplot(jagsfitDL3.mcmc,parameters=c("eta","mu","tau"))
 
 DIC_DL3 <- jags.fit.DL3$BUGSoutput$DIC
 
 
 #==================================================================##
 k <- 3
-nMC <- 10000
+nMC <- 20000
 
 res3_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                    software = "rjags")
+                    software = "rjags",priors=list(b0=0, B0inv=0.005,
+                                                nu0Half=1,
+                                                g0Half=1,g0G0Half=10, e=c(1,1,1)))
 rel3_DL <- piv_rel(res3_DL)
 
 png(filename = "Parker_univ3_DL_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -331,13 +380,13 @@ dev.off()
 # Package the data for JAGS
 
 data.package.DL4 <- list(N=length(myLI), y=myLI, k=4,
-                         b0=0, B0inv=0.1,
+                         b01=-2,b02=-1,b03=1,b04=2, B0inv=0.005,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=1, e=c(1,1,1,1))
+                         g0Half=1,g0G0Half=10, e=c(1,1,1,1))
 
 params.to.monitor <- c("eta","mu","tau")
 
-jags.fit.DL4 <- jags(data=data.package.DL4,inits=init.generator3,parameters.to.save=params.to.monitor,n.iter=10000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 2000,n.thin=5 )
+jags.fit.DL4 <- jags(data=data.package.DL4,inits=init.generator3,parameters.to.save=params.to.monitor,n.iter=20000,model.file="JAGS_mod3.txt",n.chains = 4,n.burnin = 4000,n.thin=5 )
 
 jagsfitDL4.mcmc <- as.mcmc(jags.fit.DL4) 
 
@@ -345,12 +394,18 @@ summary(jagsfitDL4.mcmc)
 
 plot(jagsfitDL4.mcmc[,"eta[1]"])
 plot(jagsfitDL4.mcmc[,"eta[2]"])
+plot(jagsfitDL4.mcmc[,"eta[3]"])
+plot(jagsfitDL4.mcmc[,"eta[4]"])
 plot(jagsfitDL4.mcmc[,"mu[1]"])
 plot(jagsfitDL4.mcmc[,"mu[2]"])
+plot(jagsfitDL4.mcmc[,"mu[3]"])
+plot(jagsfitDL4.mcmc[,"mu[4]"])
 plot(jagsfitDL4.mcmc[,"tau[1]"])
 plot(jagsfitDL4.mcmc[,"tau[2]"])
+plot(jagsfitDL4.mcmc[,"tau[3]"])
+plot(jagsfitDL4.mcmc[,"tau[4]"])
 
-densityplot(jagsfitDL4.mcmc)
+#densityplot(jagsfitDL4.mcmc,parameters=c("eta","mu","tau"))
 
 DIC_DL4 <- jags.fit.DL4$BUGSoutput$DIC
 
@@ -359,7 +414,9 @@ k <- 4
 nMC <- 20000
 
 res4_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                    software = "rjags")
+                    software = "rjags",priors=list(b0=0, B0inv=0.005,
+                                                nu0Half=1,
+                                                g0Half=1,g0G0Half=10, e=c(1,1,1,1)))
 rel4_DL <- piv_rel(res4_DL)
 
 png(filename = "Parker_univ4_DL_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -381,13 +438,13 @@ dev.off()
 # Package the data for JAGS
 
 data.package.CF2 <- list(N=length(myLI), y=myLI, k=2,
-                         b0=0, B0inv=0.1,
+                         b01=-1,b02=1, B0inv=0.1,
                          nu0Half=1,
                          g0Half=1,g0G0Half=1, e=c(1,1))
 
 params.to.monitor <- c("eta","mu","tau")
 
-jags.fit.CF2 <- jags(data=data.package.CF2,inits=init.generator1,parameters.to.save=params.to.monitor,n.iter=10000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 2000,n.thin=5 )
+jags.fit.CF2 <- jags(data=data.package.CF2,inits=init.generator1,parameters.to.save=params.to.monitor,n.iter=20000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 4000,n.thin=5 )
 
 jagsfitCF2.mcmc <- as.mcmc(jags.fit.CF2) 
 
@@ -400,16 +457,18 @@ plot(jagsfitCF2.mcmc[,"mu[2]"])
 plot(jagsfitCF2.mcmc[,"tau[1]"])
 plot(jagsfitCF2.mcmc[,"tau[2]"])
 
-densityplot(jagsfitCF2.mcmc)
+#densityplot(jagsfitCF2.mcmc,parameters=c("eta","mu","tau"))
 
 DIC_CF2 <- jags.fit.CF2$BUGSoutput$DIC
 
 #==================================================================##
 k <- 2
-nMC <- 10000
+nMC <- 20000
 
 res2_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
-                    software = "rjags")
+                    software = "rjags",priors=list(b0=0, B0inv=0.005,
+                                                   nu0Half=1,
+                                                   g0Half=1,g0G0Half=10, e=c(1,1)))
 rel2_CF <- piv_rel(res2_CF)
 
 png(filename = "Parker_univ2_CF_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -429,7 +488,7 @@ dev.off()
 # Package the data for JAGS
 
 data.package.CF3 <- list(N=length(myLI), y=myLI, k=3,
-                         b0=0, B0inv=0.1,
+                         b01=-1,b02=0,b03=1,B0inv=0.1,
                          nu0Half=1,
                          g0Half=1,g0G0Half=1, e=c(1,1,1))
 
@@ -437,7 +496,7 @@ data.package.CF3 <- list(N=length(myLI), y=myLI, k=3,
 
 params.to.monitor <- c("eta","mu","tau")
 
-jags.fit.CF3 <- jags(data=data.package.CF3,inits=init.generator2,parameters.to.save=params.to.monitor,n.iter=10000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 2000,n.thin=5 )
+jags.fit.CF3 <- jags(data=data.package.CF3,inits=init.generator2,parameters.to.save=params.to.monitor,n.iter=20000,model.file="JAGS_mod2.txt",n.chains = 4,n.burnin = 4000,n.thin=5 )
 
 jagsfitCF3.mcmc <- as.mcmc(jags.fit.CF3) 
 
@@ -450,16 +509,15 @@ plot(jagsfitCF3.mcmc[,"mu[2]"])
 plot(jagsfitCF3.mcmc[,"tau[1]"])
 plot(jagsfitCF3.mcmc[,"tau[2]"])
 
-densityplot(jagsfitCF3.mcmc)
+#densityplot(jagsfitCF3.mcmc,parameters=c("eta","mu","tau"))
 
 DIC_CF3 <- jags.fit.CF3$BUGSoutput$DIC
 
 #==================================================================##
 k <- 3
-nMC <- 10000
+nMC <- 20000
 
-res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
-                    software = "rjags")
+res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, software = "rjags",priors=list(b0=0, B0inv=0.005,nu0Half=1,g0Half=1,g0G0Half=10, e=c(1,1,1)))
 rel3_CF <- piv_rel(res3_CF)
 
 png(filename = "Parker_univ3_CF_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -479,14 +537,14 @@ dev.off()
 # Package the data for JAGS
 
 data.package.CF4 <- list(N=length(myLI), y=myLI, k=4,
-                         b0=0, B0inv=0.1,
+                         b01=-2,b02=-1,b03=1,b04=2,B0inv=0.1,
                          nu0Half=1,
                          g0Half=1,g0G0Half=1, e=c(1,1,1,1))
 
 
 params.to.monitor <- c("eta","mu","tau")
 
-jags.fit.CF4 <- jags(data=data.package.CF4,inits=init.generator3,parameters.to.save=params.to.monitor,n.iter=10000,model.file="JAGS_mod1.txt",n.chains = 4,n.burnin = 2000,n.thin=5 )
+jags.fit.CF4 <- jags(data=data.package.CF4,inits=init.generator3,parameters.to.save=params.to.monitor,n.iter=20000,model.file="JAGS_mod3.txt",n.chains = 4,n.burnin = 4000,n.thin=5 )
 
 jagsfitCF4.mcmc <- as.mcmc(jags.fit.CF4) 
 
@@ -499,17 +557,16 @@ plot(jagsfitCF4.mcmc[,"mu[2]"])
 plot(jagsfitCF4.mcmc[,"tau[1]"])
 plot(jagsfitCF4.mcmc[,"tau[2]"])
 
-densityplot(jagsfitCF4.mcmc)
+#densityplot(jagsfitCF4.mcmc,parameters=c("eta","mu","tau"))
 
 DIC_CF4 <- jags.fit.CF4$BUGSoutput$DIC
 
 
 #==================================================================##
 k <- 4
-nMC <- 10000
+nMC <- 20000
 
-res4_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
-                    software = "rjags")
+res4_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, software = "rjags",priors=list(b0=0, B0inv=0.005,nu0Half=1,g0Half=1,g0G0Half=10, e=c(1,1,1,1)))
 rel4_CF <- piv_rel(res4_CF)
 
 png(filename = "Parker_univ4_CF_trace_jags.png", width = 10, height = 4, units = "in",res=300)
