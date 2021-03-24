@@ -8,6 +8,7 @@ library(mixtools)
 library(coda)
 library(lattice)
 library(MCMCvis)
+library(MixtureInf)
 
 
 #https://cran.r-project.org/web/packages/pivmet/vignettes/Relabelling_in_Bayesian_mixtures_by_pivotal_units.html
@@ -208,6 +209,11 @@ CVfun(myLI2)
 CVfun(myLI3)
 
 #Pretty inconclusive!
+
+MixtureInf::emtest.norm(myLI)
+MixtureInf::emtest.norm(myLI2)
+MixtureInf::emtest.norm(myLI3)
+
 #==================================================================##
 #==================================================================##
 #
@@ -318,9 +324,9 @@ init.generator3 <- function(){ list(
 # Package the data for JAGS
 
 data.package.DL2 <- list(N=length(myLI), y=myLI, k=2,
-                         b01=-1,b02=1, B0inv=0.005,
+                         b01=-20,b02=20, B0inv=0.05,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=10, e=c(1,1))
+                         g0Half=1,g0G0Half=20, e=c(1,1))
 
 
 params.to.monitor <- c("eta","mu","tau","S")
@@ -348,7 +354,7 @@ DIC_DL2 <- jags.fit.DL2$BUGSoutput$DIC
 k <- 2
 nMC <- 20000
 
-res2_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, software = "rjags", priors=list(b0=0, B0inv=0.005, nu0Half=1, g0Half=1, g0G0Half=10, e=c(1,1)))
+res2_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, software = "rjags", priors=list(b0=0, B0inv=0.05, nu0Half=1, g0Half=1, g0G0Half=20, e=c(1,1)))
 
 rel2_DL <- piv_rel(res2_DL)
 
@@ -368,9 +374,9 @@ dev.off()
 # Package the data for JAGS
 
 data.package.DL3 <- list(N=length(myLI), y=myLI, k=3,
-                         b01=-50, b02=0, b03=50, B0inv=0.01,
+                         b01=-50, b02=0, b03=50, B0inv=0.05,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=10, e=c(1,1,1))
+                         g0Half=1,g0G0Half=20, e=c(1,1,1))
 
 params.to.monitor <- c("eta","mu","tau")
 
@@ -400,9 +406,9 @@ k <- 3
 nMC <- 20000
 
 res3_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                    software = "rjags",priors=list(b0=0, B0inv=0.005,
+                    software = "rjags",priors=list(b0=0, B0inv=0.05,
                                                    nu0Half=1,
-                                                   g0Half=1,g0G0Half=10, e=c(1,1,1)))
+                                                   g0Half=1,g0G0Half=20, e=c(1,1,1)))
 rel3_DL <- piv_rel(res3_DL)
 
 png(filename = "Parker_univ3_DL_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -421,9 +427,9 @@ dev.off()
 # Package the data for JAGS
 
 data.package.DL4 <- list(N=length(myLI), y=myLI, k=4,
-                         b01=-2,b02=-1,b03=1,b04=2, B0inv=0.005,
+                         b01=-20,b02=-10,b03=10,b04=20, B0inv=0.05,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=10, e=c(1,1,1,1))
+                         g0Half=1,g0G0Half=20, e=c(1,1,1,1))
 
 params.to.monitor <- c("eta","mu","tau")
 
@@ -455,9 +461,9 @@ k <- 4
 nMC <- 20000
 
 res4_DL <- piv_MCMC(y = myLI, k = k, nMC = nMC, 
-                    software = "rjags",priors=list(b0=0, B0inv=0.005,
+                    software = "rjags",priors=list(b0=0, B0inv=0.05,
                                                    nu0Half=1,
-                                                   g0Half=1,g0G0Half=10, e=c(1,1,1,1)))
+                                                   g0Half=1,g0G0Half=20, e=c(1,1,1,1)))
 rel4_DL <- piv_rel(res4_DL)
 
 png(filename = "Parker_univ4_DL_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -479,9 +485,9 @@ dev.off()
 # Package the data for JAGS
 
 data.package.CF2 <- list(N=length(myLI), y=myLI, k=2,
-                         b01=-1,b02=1, B0inv=0.1,
+                         b01=-50,b02=50, B0inv=0.05,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=1, e=c(1,1))
+                         g0Half=1,g0G0Half=20, e=c(1,1))
 
 params.to.monitor <- c("eta","mu","tau")
 
@@ -507,9 +513,9 @@ k <- 2
 nMC <- 20000
 
 res2_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, 
-                    software = "rjags",priors=list(b0=0, B0inv=0.005,
+                    software = "rjags",priors=list(b0=0, B0inv=0.05,
                                                    nu0Half=1,
-                                                   g0Half=1,g0G0Half=10, e=c(1,1)))
+                                                   g0Half=1,g0G0Half=20, e=c(1,1)))
 rel2_CF <- piv_rel(res2_CF)
 
 png(filename = "Parker_univ2_CF_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -529,9 +535,9 @@ dev.off()
 # Package the data for JAGS
 
 data.package.CF3 <- list(N=length(myLI), y=myLI, k=3,
-                         b01=-1,b02=0,b03=1,B0inv=0.1,
+                         b01=-50,b02=0,b03=50,B0inv=0.05,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=1, e=c(1,1,1))
+                         g0Half=1,g0G0Half=20, e=c(1,1,1))
 
 
 
@@ -558,7 +564,7 @@ DIC_CF3 <- jags.fit.CF3$BUGSoutput$DIC
 k <- 3
 nMC <- 20000
 
-res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, software = "rjags",priors=list(b0=0, B0inv=0.005,nu0Half=1,g0Half=1,g0G0Half=10, e=c(1,1,1)))
+res3_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, software = "rjags",priors=list(b0=0, B0inv=0.05,nu0Half=1,g0Half=1,g0G0Half=20, e=c(1,1,1)))
 rel3_CF <- piv_rel(res3_CF)
 
 png(filename = "Parker_univ3_CF_trace_jags.png", width = 10, height = 4, units = "in",res=300)
@@ -578,9 +584,9 @@ dev.off()
 # Package the data for JAGS
 
 data.package.CF4 <- list(N=length(myLI), y=myLI, k=4,
-                         b01=-2,b02=-1,b03=1,b04=2,B0inv=0.1,
+                         b01=-50,b02=-20,b03=20,b04=50,B0inv=0.05,
                          nu0Half=1,
-                         g0Half=1,g0G0Half=1, e=c(1,1,1,1))
+                         g0Half=1,g0G0Half=20, e=c(1,1,1,1))
 
 
 params.to.monitor <- c("eta","mu","tau")
@@ -607,7 +613,7 @@ DIC_CF4 <- jags.fit.CF4$BUGSoutput$DIC
 k <- 4
 nMC <- 20000
 
-res4_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, software = "rjags",priors=list(b0=0, B0inv=0.005,nu0Half=1,g0Half=1,g0G0Half=10, e=c(1,1,1,1)))
+res4_CF <- piv_MCMC(y = myLI2, k = k, nMC = nMC, software = "rjags",priors=list(b0=0, B0inv=0.05,nu0Half=1,g0Half=1,g0G0Half=20, e=c(1,1,1,1)))
 rel4_CF <- piv_rel(res4_CF)
 
 png(filename = "Parker_univ4_CF_trace_jags.png", width = 10, height = 4, units = "in",res=300)
