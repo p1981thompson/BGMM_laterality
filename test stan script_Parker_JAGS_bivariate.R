@@ -117,21 +117,58 @@ LI.DL.k2 <- normalmixEM(myLI,k=2,maxit=100,epsilon=0.01)
 LI.DL.k3 <- normalmixEM(myLI,k=3,maxit=100,epsilon=0.01)
 LI.DL.k4 <- normalmixEM(myLI,k=4,maxit=100,epsilon=0.01)
 
-plot(hist(myLI,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Dichotic Listening (k=2)")
-lines(density(myLI),lty=2)
-sapply(1:2,plot.normal.components,mixture=LI.DL.k2)
+
+plot_mix_comps <- function(x, mu, sigma, lam) {
+  lam * dnorm(x, mu, sigma)
+}
+data.frame(x = LI.DL.k2$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k2$mu[1], LI.DL.k2$sigma[1], lam = LI.DL.k2$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k2$mu[2], LI.DL.k2$sigma[2], lam = LI.DL.k2$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  ylab("Density")+theme_bw()
 
 
-plot(hist(myLI,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Dichotic Listening (k=3)")
-lines(density(myLI),lty=2)
-sapply(1:3,plot.normal.components,mixture=LI.DL.k3)
+data.frame(x = LI.DL.k3$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k3$mu[1], LI.DL.k3$sigma[1], lam = LI.DL.k3$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k3$mu[2], LI.DL.k3$sigma[2], lam = LI.DL.k3$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k3$mu[3], LI.DL.k3$sigma[3], lam = LI.DL.k3$lambda[3]),
+                colour = "green", lwd = 1.5) +
+  ylab("Density")+theme_bw()
 
-plot(hist(myLI,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Dichotic Listening (k=4)")
-lines(density(myLI),lty=2)
-sapply(1:4,plot.normal.components,mixture=LI.DL.k4)
+
+data.frame(x = LI.DL.k4$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k4$mu[1], LI.DL.k4$sigma[1], lam = LI.DL.k4$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k4$mu[2], LI.DL.k4$sigma[2], lam = LI.DL.k4$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k4$mu[3], LI.DL.k4$sigma[3], lam = LI.DL.k4$lambda[3]),
+                colour = "green", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.DL.k4$mu[4], LI.DL.k4$sigma[4], lam = LI.DL.k4$lambda[4]),
+                colour = "purple", lwd = 1.5) +
+  ylab("Density")+theme_bw()
+
+
 
 #Chimeric faces#
 
@@ -139,21 +176,53 @@ LI.CF.k2 <- normalmixEM(myLI2,k=2,maxit=100,epsilon=0.01)
 LI.CF.k3 <- normalmixEM(myLI2,k=3,maxit=100,epsilon=0.01)
 LI.CF.k4 <- normalmixEM(myLI2,k=4,maxit=100,epsilon=0.01)
 
-plot(hist(myLI2,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Chimeric faces (k=2)")
-lines(density(myLI2),lty=2)
-sapply(1:2,plot.normal.components,mixture=LI.CF.k2)
+data.frame(x = LI.CF.k2$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k2$mu[1], LI.CF.k2$sigma[1], lam = LI.CF.k2$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k2$mu[2], LI.CF.k2$sigma[2], lam = LI.CF.k2$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  ylab("Density")+theme_bw()
 
 
-plot(hist(myLI2,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Chimeric faces (k=3)")
-lines(density(myLI2),lty=2)
-sapply(1:3,plot.normal.components,mixture=LI.CF.k3)
+data.frame(x = LI.CF.k3$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k3$mu[1], LI.CF.k3$sigma[1], lam = LI.CF.k3$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k3$mu[2], LI.CF.k3$sigma[2], lam = LI.CF.k3$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k3$mu[3], LI.CF.k3$sigma[3], lam = LI.CF.k3$lambda[3]),
+                colour = "green", lwd = 1.5) +
+  ylab("Density")+theme_bw()
 
-plot(hist(myLI2,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Chimeric faces (k=4)")
-lines(density(myLI2),lty=2)
-sapply(1:4,plot.normal.components,mixture=LI.CF.k4)
+
+data.frame(x = LI.CF.k4$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k4$mu[1], LI.CF.k4$sigma[1], lam = LI.CF.k4$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k4$mu[2], LI.CF.k4$sigma[2], lam = LI.CF.k4$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k4$mu[3], LI.CF.k4$sigma[3], lam = LI.CF.k4$lambda[3]),
+                colour = "green", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k4$mu[4], LI.CF.k4$sigma[4], lam = LI.CF.k4$lambda[4]),
+                colour = "purple", lwd = 1.5) +
+  ylab("Density")+theme_bw()
+
 
 #Finger Tapping#
 
@@ -161,21 +230,52 @@ LI.FT.k2 <- normalmixEM(myLI3,k=2,maxit=100,epsilon=0.01)
 LI.FT.k3 <- normalmixEM(myLI3,k=3,maxit=100,epsilon=0.01)
 LI.FT.k4 <- normalmixEM(myLI3,k=4,maxit=100,epsilon=0.01)
 
-plot(hist(myLI3,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Finger Tapping (k=2)")
-lines(density(myLI3),lty=2)
-sapply(1:2,plot.normal.components,mixture=LI.FT.k2)
+data.frame(x = LI.FT.k2$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k2$mu[1], LI.FT.k2$sigma[1], lam = LI.FT.k2$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k2$mu[2], LI.FT.k2$sigma[2], lam = LI.FT.k2$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  ylab("Density")+theme_bw()
 
 
-plot(hist(myLI3,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Finger Tapping (k=3)")
-lines(density(myLI3),lty=2)
-sapply(1:3,plot.normal.components,mixture=LI.FT.k3)
+data.frame(x = LI.FT.k3$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k3$mu[1], LI.FT.k3$sigma[1], lam = LI.FT.k3$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k3$mu[2], LI.FT.k3$sigma[2], lam = LI.FT.k3$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.CF.k3$mu[3], LI.CF.k3$sigma[3], lam = LI.CF.k3$lambda[3]),
+                colour = "green", lwd = 1.5) +
+  ylab("Density")+theme_bw()
 
-plot(hist(myLI3,breaks=101),col="grey",border="grey",freq=FALSE,
-     xlab="LI",main="Finger Tapping (k=4)")
-lines(density(myLI3),lty=2)
-sapply(1:4,plot.normal.components,mixture=LI.FT.k4)
+
+data.frame(x = LI.FT.k4$x) %>%
+  ggplot() +
+  geom_histogram(aes(x, ..density..), binwidth = 2, colour = "grey", 
+                 fill = "white") +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k4$mu[1], LI.FT.k4$sigma[1], lam = LI.FT.k4$lambda[1]),
+                colour = "red", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k4$mu[2], LI.FT.k4$sigma[2], lam = LI.FT.k4$lambda[2]),
+                colour = "blue", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k4$mu[3], LI.FT.k4$sigma[3], lam = LI.FT.k4$lambda[3]),
+                colour = "green", lwd = 1.5) +
+  stat_function(geom = "line", fun = plot_mix_comps,
+                args = list(LI.FT.k4$mu[4], LI.FT.k4$sigma[4], lam = LI.FT.k4$lambda[4]),
+                colour = "purple", lwd = 1.5) +
+  ylab("Density")+theme_bw()
 
 
 ####################################################################
@@ -208,11 +308,13 @@ CVfun(myLI)
 CVfun(myLI2)
 CVfun(myLI3)
 
-#Pretty inconclusive!
+#Pretty inconclusive! mostly pointing toward 2 group mixtures
 
-MixtureInf::emtest.norm(myLI)
-MixtureInf::emtest.norm(myLI2)
-MixtureInf::emtest.norm(myLI3)
+# Now test whether we have homogeneity in the data, i.e. whether this is a mixture at all.
+
+MixtureInf::emtest.norm(myLI, niter = 500) #DL looks like 2 group
+MixtureInf::emtest.norm(myLI2, niter = 500) #DL looks like 2 group ()
+MixtureInf::emtest.norm(myLI3, niter = 500) #DL looks like 2 group
 
 #==================================================================##
 #==================================================================##
